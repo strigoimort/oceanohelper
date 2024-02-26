@@ -11,9 +11,7 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById(`${menuItemId}Content`).style.display = 'block';
         });
     });
-});
 
-document.addEventListener("DOMContentLoaded", function() {
     const excelForm = document.getElementById('excelForm');
     const excelFile = document.getElementById('excelFile');
     const map = L.map('map').setView([0, 0], 2);
