@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oceanography Website</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.0/xlsx.full.min.js"></script>
 </head>
+
 <body>
     <div class="container">
 
@@ -22,59 +24,39 @@
         
         <!-- Content -->
         <div class="content">
-            
-            <!-- Tracer -->
-            <div id="tracerContent" class="menu-content">
-                
-                <!-- Heading -->
-                <h2>Tracer</h2>
-                <p>Tracer adalah alat yang memungkinkan Anda untuk mengubah data dari file Excel yang memiliki kolom longitude dan latitude menjadi jalur (polyline) yang dapat ditampilkan di peta. Alat ini sangat berguna dalam melacak pergerakan atau rute dari titik-titik yang tercatat dalam data Excel.</p>
-                <h3>Cara Menggunakan:</h3>
-                <ol>
-                    <li>Pastikan data Excel Anda memiliki dua kolom: satu untuk longitude dan satu untuk latitude.</li>
-                    <li>Pilih file Excel yang ingin Anda gunakan dengan mengklik tombol "Unggah File".</li>
-                    <li>Klik tombol "Proses" untuk mengonversi data Excel menjadi jalur polyline.</li>
-                    <li>Setelah proses selesai, jalur polyline akan ditampilkan di peta.</li>
-                </ol>
-                <h3>Fitur Tambahan:</h3>
-                <ul>
-                    <li>Pilihan untuk menyesuaikan warna dan gaya jalur polyline.</li>
-                    <li>Kemampuan untuk menyimpan jalur polyline sebagai file gambar atau file data.</li>
-                    <li>Pengaturan untuk menampilkan legenda atau informasi tambahan pada peta.</li>
-                </ul>
-                <p>Silakan coba alat Tracer kami untuk melacak pergerakan atau rute dari titik-titik dalam data Excel Anda.</p>
 
-                <!-- Form -->
-                <form id="excelForm" enctype="multipart/form-data">
-                    <input type="file" id="excelFile" accept=".xls,.xlsx" required>
-                    <button type="submit">Proses</button>
+            <div id="waveroseContent" class="menu-content">
+                <h2>Waverose</h2>
+                <!-- Input untuk Waverose -->
+                <form id="waveroseForm" enctype="multipart/form-data">
+                    <label for="waveExcelFile">Upload Excel File:</label>
+                    <input type="file" id="waveExcelFile" accept=".xls,.xlsx" required>
+                    <button type="submit">Process</button>
                 </form>
-                <div id="map"></div>
-                <button id="downloadButton" style="display: none;">Unduh Gambar</button>
-                <img id="mapImage" style="display: none;">
-                <p id="errorText" style="display: none; color: red;"></p>
+                <p id="waveErrorText" style="display: none; color: red;"></p>
+                <!-- Konten Waverose di sini -->
             </div>
 
+            
 
 
 
+            <!-- Tracer -->
+            <div id="tracerContent" class="menu-content">
+                <!-- Konten Waverose di sini -->
+            </div>
 
             <!-- Mapper -->
             <div id="mapperContent" class="menu-content">
-                <h2>Mapper</h2>
-                <p>Mapper merupakan alat atau teknik untuk membuat peta, baik itu peta fisik maupun peta tematik yang menggambarkan berbagai fenomena di laut.</p>
-                <p>Metode pemetaan oseanografi sangat penting untuk pemahaman tentang topografi dasar laut, distribusi suhu, salinitas, dan parameter lainnya.</p>
+                <!-- Konten Mapper di sini -->
             </div>
-            <div id="waveroseContent" class="menu-content">
-                <h2>Waverose</h2>
-                <p>Waverose adalah grafik yang menggambarkan statistik distribusi arah dan tinggi gelombang laut pada suatu lokasi dan periode waktu tertentu.</p>
-                <p>Informasi dari waverose digunakan untuk navigasi kapal, perencanaan konstruksi di laut, dan kegiatan lain yang membutuhkan pemahaman tentang gelombang laut.</p>
-            </div>
+
+
+            <!-- Bathymetry -->
             <div id="bathymetryContent" class="menu-content">
-                <h2>Bathymetry</h2>
-                <p>Bathymetry adalah studi tentang kedalaman dan bentuk dasar laut.</p>
-                <p>Informasi mengenai bathymetry sangat penting untuk pemetaan lautan, navigasi kapal, serta pemahaman tentang geologi dan geomorfologi laut.</p>
+                <!-- Konten Bathymetry di sini -->
             </div>
+
         </div>
     </div>
     <script src="script.js"></script>

@@ -1,69 +1,94 @@
 document.addEventListener("DOMContentLoaded", function() {
+    // Declare variabel
     const menuItems = document.querySelectorAll('.menu li');
     const menuContents = document.querySelectorAll('.menu-content');
 
+    // Tambahkan event listener untuk setiap item menu
     menuItems.forEach(function(item) {
         item.addEventListener('click', function() {
             const menuItemId = this.id;
+            
+            // Sembunyikan semua konten
             menuContents.forEach(function(content) {
                 content.style.display = 'none';
             });
+            
+            // Tampilkan konten yang sesuai dengan item menu yang diklik
             document.getElementById(`${menuItemId}Content`).style.display = 'block';
         });
     });
 
-    const excelForm = document.getElementById('excelForm');
-    const excelFile = document.getElementById('excelFile');
-    const map = L.map('map').setView([0, 0], 2);
-    const downloadButton = document.getElementById('downloadButton');
-    const mapImage = document.getElementById('mapImage');
-    const errorText = document.getElementById('errorText');
+    // WAVEROSE
+    // Declare variabel
+    const waveroseForm = document.getElementById('waveroseForm');
+    const waveExcelFile = document.getElementById('waveExcelFile');
+    const waveErrorText = document.getElementById('waveErrorText');
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    // Function - Input form
+    waveroseForm.addEventListener('submit', function(event) {
 
-    excelForm.addEventListener('submit', function(event) {
+        // Mengambil data
         event.preventDefault();
-        const file = excelFile.files[0];
+        const file = waveExcelFile.files[0];
         const reader = new FileReader();
         
+        // Mengolah data dalam json
         reader.onload = function(event) {
             const data = new Uint8Array(event.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const sheetName = workbook.SheetNames[0];
             const sheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(sheet, {header: ['latitude', 'longitude']});
-            const coordinates = jsonData.map(item => [item.latitude, item.longitude]);
+            const jsonData = XLSX.utils.sheet_to_json(sheet, {header: ['wave_height', 'wind_direction']});
             
-            if (coordinates.length < 2) {
-                errorText.textContent = "Error: Data Excel harus memiliki setidaknya dua titik.";
-                errorText.style.display = 'block';
-                return;
-            }
-
-            const polyline = L.polyline(coordinates, {color: 'blue'}).addTo(map);
-            map.fitBounds(polyline.getBounds());
-
-            const imageURL = map.getCanvas().toDataURL("image/png");
-            mapImage.src = imageURL;
-            downloadButton.style.display = 'block';
-            mapImage.style.display = 'block';
-            errorText.style.display = 'none';
+            // Proses data untuk waverose
+            const processedData = processDataForWaverose(jsonData);
+            
+            // Lakukan sesuatu dengan data yang telah diproses untuk Waverose
+            console.log(processedData);
         };
         
+        // Peringatan error
         reader.onerror = function(event) {
-            errorText.textContent = "Error: Gagal membaca file Excel.";
-            errorText.style.display = 'block';
+            waveErrorText.textContent = "Error: Gagal membaca file Excel.";
+            waveErrorText.style.display = 'block';
         };
 
         reader.readAsArrayBuffer(file);
     });
 
-    downloadButton.addEventListener('click', function() {
-        const imageSource = mapImage.src.replace(/^data:image\/[^;]/, 'data:application/octet-stream');
-        this.href = imageSource;
-        this.download = 'tracer_map.png';
-    });
+    // Function - Konversi derajat
+    function convertDegreeToDirection(degree) {
+        // Definisikan rentang arah angin
+        const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+        
+        // Konversi derajat menjadi indeks di dalam array directions
+        const index = Math.round(degree / 22.5) % 16;
+        
+        // Kembalikan label arah angin yang sesuai dengan indeks
+        return directions[index];
+    }
+
+    // Fungsi untuk memproses data untuk waverose
+    function processDataForWaverose(jsonData) {
+        
+        // Objek untuk menyimpan frekuensi kemunculan arah angin
+        const windFrequency = {};
+        
+        // Iterasi melalui setiap entri data JSON
+        jsonData.forEach(function(entry) {
+            
+            // Ambil nilai derajat arah angin dari data
+            const degree = entry.wind_direction;
+            
+            // Konversi nilai derajat menjadi label arah angin
+            const direction = convertDegreeToDirection(degree);
+            
+            // Tambahkan frekuensi kemunculan arah angin ke objek windFrequency
+            windFrequency[direction] = (windFrequency[direction] || 0) + 1;
+        });
+        // Kembalikan objek yang berisi frekuensi kemunculan arah angin
+        return windFrequency;
+    }
 });
+
 
