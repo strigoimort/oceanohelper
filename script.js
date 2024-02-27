@@ -1,9 +1,11 @@
 document.addEventListener("DOMContentLoaded", function() {
+   
+    // ---------- SIDEBAR ---------- //
     // Declare variabel
     const menuItems = document.querySelectorAll('.menu li');
     const menuContents = document.querySelectorAll('.menu-content');
 
-    // Tambahkan event listener untuk setiap item menu
+    // Execution
     menuItems.forEach(function(item) {
         item.addEventListener('click', function() {
             const menuItemId = this.id;
@@ -18,13 +20,14 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // WAVEROSE
+
+    // ---------- WAVEROSE ---------- //
     // Declare variabel
     const waveroseForm = document.getElementById('waveroseForm');
     const waveExcelFile = document.getElementById('waveExcelFile');
     const waveErrorText = document.getElementById('waveErrorText');
 
-    // Function - Input form
+    // Execution
     waveroseForm.addEventListener('submit', function(event) {
 
         // Mengambil data
@@ -42,6 +45,12 @@ document.addEventListener("DOMContentLoaded", function() {
             
             // Proses data untuk waverose
             const processedData = processDataForWaverose(jsonData);
+
+            // Buat windrose dari data yang telah diproses
+            const windroseCanvas = createWindrose(processedData);
+        
+            // Simpan gambar windrose sebagai file PNG
+            saveWindroseAsPNG(windroseCanvas);
             
             // Lakukan sesuatu dengan data yang telah diproses untuk Waverose
             console.log(processedData);
@@ -56,38 +65,91 @@ document.addEventListener("DOMContentLoaded", function() {
         reader.readAsArrayBuffer(file);
     });
 
-    // Function - Konversi derajat
+    // Functions
+    // Konversi derajat
     function convertDegreeToDirection(degree) {
-        // Definisikan rentang arah angin
-        const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-        
-        // Konversi derajat menjadi indeks di dalam array directions
+        const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];    
         const index = Math.round(degree / 22.5) % 16;
-        
-        // Kembalikan label arah angin yang sesuai dengan indeks
         return directions[index];
     }
 
-    // Fungsi untuk memproses data untuk waverose
+    // Proses data
     function processDataForWaverose(jsonData) {
-        
-        // Objek untuk menyimpan frekuensi kemunculan arah angin
         const windFrequency = {};
-        
-        // Iterasi melalui setiap entri data JSON
         jsonData.forEach(function(entry) {
-            
-            // Ambil nilai derajat arah angin dari data
             const degree = entry.wind_direction;
-            
-            // Konversi nilai derajat menjadi label arah angin
             const direction = convertDegreeToDirection(degree);
-            
-            // Tambahkan frekuensi kemunculan arah angin ke objek windFrequency
             windFrequency[direction] = (windFrequency[direction] || 0) + 1;
         });
-        // Kembalikan objek yang berisi frekuensi kemunculan arah angin
         return windFrequency;
+    }
+
+    // Plot windrose
+    function createWindrose(windFrequency) {
+        // Ambil canvas untuk menggambar windrose
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Tentukan ukuran dan posisi canvas
+        canvas.width = 2400;
+        canvas.height = 2400; 
+    
+        // Atur warna latar belakang canvas menjadi putih
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height); 
+    
+        // Hitung total frekuensi arah angin
+        const totalFrequency = Object.values(windFrequency).reduce((acc, val) => acc + val, 0);
+    
+        // Atur parameter untuk menggambar windrose
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = Math.min(centerX, centerY) - 20;
+    
+        // Atur skala untuk menggambar windrose
+        const scale = 3;
+    
+        // Tentukan warna untuk setiap arah angin
+        const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'cyan', 'magenta'];
+    
+        // Mulai menggambar windrose
+        let angle = -Math.PI / 2;
+        Object.entries(windFrequency).forEach(([direction, frequency], index) => {
+            const ratio = frequency / totalFrequency;
+            const endX = centerX + Math.cos(angle) * radius * ratio * scale;
+            const endY = centerY + Math.sin(angle) * radius * ratio * scale;
+            
+            // Gambar garis untuk mewakili frekuensi arah angin
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = colors[index % colors.length];
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Tulis label untuk arah angin
+            ctx.font = '48px Arial';
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'center';
+            ctx.fillText(direction, endX, endY);
+            
+            // Perbarui sudut untuk arah angin berikutnya
+            angle += Math.PI / 8;
+        });
+        
+        // Kembalikan canvas dengan windrose yang sudah digambar
+        return canvas;
+    }
+
+    // Simpan windrose
+    function saveWindroseAsPNG(canvas) {
+        // Buat link untuk menyimpan gambar sebagai file PNG
+        const downloadLink = document.createElement('a');
+        downloadLink.href = canvas.toDataURL('image/png');
+        downloadLink.download = 'windrose.png';
+        
+        // Klik link secara otomatis untuk memulai proses penyimpanan
+        downloadLink.click();
     }
 });
 
