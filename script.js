@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function() {
             angle += Math.PI / 8;
         });
         
-        // Kembalikan canvas dengan windrose yang sudah digambar
+        // Kembalikan canvas dengan windrose
         return canvas;
     }
 
