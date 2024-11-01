@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oceanography Website with Plotly</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.0/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <ul class="menu">
+                <li id="tracer">Tracer</li>
+                <li id="mapper">Mapper</li>
+                <li id="waverose">Waverose</li>
+                <li id="bathymetry">Bathymetry</li>
+            </ul>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Waverose Content -->
+            <div id="waveroseContent" class="menu-content">
+                <h2>Waverose</h2>
+                <!-- Input untuk Waverose -->
+                <form id="waveroseForm" enctype="multipart/form-data">
+                    <label for="waveExcelFile">Upload Excel File:</label>
+                    <input type="file" id="waveExcelFile" accept=".xls,.xlsx" required>
+                    <button type="submit">Process</button>
+                </form>
+                <p id="waveErrorText" style="display: none; color: red;"></p>
+                <div id="waverosePlot" style="width:600px;height:600px;"></div>
+            </div>
+
+            <!-- Tracer Content -->
+            <div id="tracerContent" class="menu-content">
+                <h2>Tracer</h2>
+                <!-- Konten Tracer di sini -->
+            </div>
+
+            <!-- Mapper Content -->
+            <div id="mapperContent" class="menu-content">
+                <h2>Mapper</h2>
+                <!-- Konten Mapper di sini -->
+            </div>
+
+            <!-- Bathymetry Content -->
+            <div id="bathymetryContent" class="menu-content">
+                <h2>Bathymetry</h2>
+                <!-- Konten Bathymetry di sini -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Sidebar navigation logic
+            const menuItems = document.querySelectorAll('.menu li');
+            const menuContents = document.querySelectorAll('.menu-content');
+
+            menuItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    const menuItemId = this.id;
+
+                    // Hide all content sections
+                    menuContents.forEach(function(content) {
+                        content.style.display = 'none';
+                    });
+
+                    // Show the selected content section
+                    document.getElementById(`${menuItemId}Content`).style.display = 'block';
+                });
+            });
+
+            // Waverose form submission logic
+            const waveroseForm = document.getElementById('waveroseForm');
+            const waveExcelFile = document.getElementById('waveExcelFile');
+            const waveErrorText = document.getElementById('waveErrorText');
+
+            waveroseForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const file = waveExcelFile.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, {header: ['wave_height', 'wind_direction']});
+                    
+                    const processedData = processDataForWaverose(jsonData);
+                    createWindrosePlot(processedData);
+                };
+
+                reader.onerror = function() {
+                    waveErrorText.textContent = "Error: Gagal membaca file Excel.";
+                    waveErrorText.style.display = 'block';
+                };
+
+                reader.readAsArrayBuffer(file);
+            });
+
+            function processDataForWaverose(jsonData) {
+                const windFrequency = {
+                    'N': 0, 'NNE': 0, 'NE': 0, 'ENE': 0,
+                    'E': 0, 'ESE': 0, 'SE': 0, 'SSE': 0,
+                    'S': 0, 'SSW': 0, 'SW': 0, 'WSW': 0,
+                    'W': 0, 'WNW': 0, 'NW': 0, 'NNW': 0
+                };
+                jsonData.forEach(function(entry) {
+                    const degree = entry.wind_direction;
+                    const direction = convertDegreeToDirection(degree);
+                    windFrequency[direction]++;
+                });
+                return windFrequency;
+            }
+
+            function convertDegreeToDirection(degree) {
+                const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];    
+                const index = Math.round(degree / 22.5) % 16;
+                return directions[index];
+            }
+
+            function createWindrosePlot(windFrequency) {
+                const directions = Object.keys(windFrequency);
+                const frequencies = Object.values(windFrequency);
+
+                const data = [{
+                    type: 'barpolar',
+                    r: frequencies,
+                    theta: directions,
+                    marker: {
+                        color: frequencies,
+                        colorscale: 'Blues',
+                    }
+                }];
+
+                const layout = {
+                    polar: {
+                        angularaxis: {
+                            direction: "clockwise",
+                            dtick: 45,  // Ensure every 45 degrees shows a label
+                            tickmode: "array",
+                            tickvals: [0, 45, 90, 135, 180, 225, 270, 315], // These are the angles for N, NE, E, SE, etc.
+                            ticktext: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"], // Labels corresponding to the angles
+                            rotation: 90, // This rotation aligns 0 degrees to North
+                        },
+                        radialaxis: {
+                            visible: true,
+                            range: [0, Math.max(...frequencies)]
+                        }
+                    },
+                    title: 'Windrose Plot'
+                };
+
+                Plotly.newPlot('waverosePlot', data, layout);
+            }
+        });
+    </script>
+</body>
+</html>

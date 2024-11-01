@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oceanography Website</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.0/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <ul class="menu">
+                <li id="tracer">Tracer</li>
+                <li id="mapper">Mapper</li>
+                <li id="waverose">Waverose</li>
+                <li id="bathymetry">Bathymetry</li>
+            </ul>
+        </div>
+
+        
+        <!-- Content -->
+        <div class="content">
+
+            <div id="waveroseContent" class="menu-content">
+                <h2>Waverose</h2>
+                <!-- Input untuk Waverose -->
+                <form id="waveroseForm" enctype="multipart/form-data">
+                    <label for="waveExcelFile">Upload Excel File:</label>
+                    <input type="file" id="waveExcelFile" accept=".xls,.xlsx" required>
+                    <button type="submit">Process</button>
+                </form>
+
+
+                <p id="waveErrorText" style="display: none; color: red;"></p>
+                
+                
+                
+                <!-- Konten Waverose di sini -->
+            </div>
+
+            
+
+
+
+            <!-- Tracer -->
+            <div id="tracerContent" class="menu-content">
+                <!-- Konten Waverose di sini -->
+            </div>
+
+            <!-- Mapper -->
+            <div id="mapperContent" class="menu-content">
+                <!-- Konten Mapper di sini -->
+            </div>
+
+
+            <!-- Bathymetry -->
+            <div id="bathymetryContent" class="menu-content">
+                <!-- Konten Bathymetry di sini -->
+            </div>
+
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapper Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        #map {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mapper Analysis</h1>
+        <p>Upload your data in .xlsx or .csv format to generate a raster map.</p>
+        
+        <input type="file" id="file-input" accept=".xlsx, .csv">
+        <button id="upload-btn">Upload</button>
+
+        <div id="map"></div>
+    </div>
+
+    <script>
+        function initializeMap() {
+            const initialLayout = {
+                mapbox: {
+                    style: 'open-street-map',
+                    center: { lon: 110.68, lat: -6.6 }, // Default center (example)
+                    zoom: 8
+                },
+                title: 'Raster Map (Initial View)'
+            };
+
+            Plotly.newPlot('map', [], initialLayout);
+        }
+
+        function plotRaster(data) {
+            const latitudes = data.map(row => row.latitude);
+            const longitudes = data.map(row => row.longitude);
+            const values = data.map(row => row.value);
+
+            const trace = {
+                type: 'densitymapbox',
+                lon: longitudes,
+                lat: latitudes,
+                z: values,
+                colorscale: 'Viridis',
+                colorbar: { title: 'Value' }
+            };
+
+            const layout = {
+                mapbox: {
+                    style: 'open-street-map',
+                    center: { lon: (Math.min(...longitudes) + Math.max(...longitudes)) / 2, 
+                              lat: (Math.min(...latitudes) + Math.max(...latitudes)) / 2 },
+                    zoom: 10,
+                },
+                title: 'Raster Map with Data Overlay'
+            };
+
+            Plotly.newPlot('map', [trace], layout);
+        }
+
+        document.getElementById('upload-btn').addEventListener('click', function() {
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    plotRaster(jsonData);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                alert('Please upload a file.');
+            }
+        });
+
+        // Display initial map on page load
+        initializeMap();
+    </script>
+</body>
+</html>
